@@ -16,7 +16,7 @@ public class PerspectiveApiTest {
         PerspectiveConsumerApi client = PerspectiveFactory.create(spec -> {
             spec.api(PerspectiveConsumerApi.class);
             spec.apiKeyAuth(auth -> {
-                auth.apiKey("AIzaSyAoVLjhaHXz0PSffiq2G4zOuYvd2Ee2dgg");
+                auth.apiKey("");
             });
         });
         
@@ -37,7 +37,7 @@ public class PerspectiveApiTest {
         PerspectiveApi client = PerspectiveFactory.create(spec -> {
             spec.api(PerspectiveApi.class);
             spec.apiKeyAuth(auth -> {
-                auth.apiKey("AIzaSyAoVLjhaHXz0PSffiq2G4zOuYvd2Ee2dgg");
+                auth.apiKey("");
             });
         });
         
