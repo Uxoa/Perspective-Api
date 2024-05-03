@@ -1,0 +1,203 @@
+# see: https://developers.perspectiveapi.com/s/about-the-api-methods?language=en_US
+openapi: 3.0.3
+info:
+  title: Perspective
+  description: |-
+    The Perspective API is a machine learning model that rates the perceived impact a comment might have on a conversation.
+    Developers and publishers can use this model to help automate comment moderation.
+  version: 1.0.0
+servers:
+  - url: https://commentanalyzer.googleapis.com
+security:
+  - ApiKey: []
+paths:
+  /v1alpha1/comments:analyze:
+    post:
+      operationId: AnalyzeCommentV1Alpha1
+      summary: Analyze the comment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommentAnalyzeRequest'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommentAnalyzeResult'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '500':
+          description: Internal Server Error
+components:
+  securitySchemes:
+    ApiKey:
+      type: apiKey
+      name: key
+      in: query
+      description: API key for authentication
+  schemas:
+    CommentAnalyzeRequest:
+      type: object
+      properties:
+        comment:
+          $ref: '#/components/schemas/Comment'
+        requestedAttributes:
+          type: object
+          additionalProperties: {}
+          description: |-
+            A map from attribute name to a configuration object.
+            If no configuration options are specified, defaults are used, so the empty object {} is a valid (and common) choice.
+            You can specify multiple attribute names here to get scores from multiple attributes in a single request.
+        languages:
+          type: array
+          items:
+            type: string
+          description: |-
+            A list of ISO 631-1 two-letter language codes specifying the language(s) that comment is in (for example, "en", "es", "fr", "de", etc).
+            If unspecified, the API will auto-detect the comment language.
+            If language detection fails, the API returns an error.
+            Note: See currently supported languages on the ‘Attributes and Languages’ page. There is no simple way to use the API across languages with production support and languages with experimental support only.
+        context:
+          $ref: '#/components/schemas/Context'
+        doNotStore:
+          type: boolean
+          default: false
+          description: |-
+            Whether the API is permitted to store comment and context from this request.
+            Stored comments will be used for future research and community attribute building purposes to improve the API over time.
+            Defaults to false (request data may be stored).
+            Warning: This should be set to true if data being submitted is private (i.e. not publicly accessible), or if the data submitted contains content written by someone under 13 years old (or the relevant age determined by applicable law in my jurisdiction).
+        spanAnnotations:
+            type: boolean
+            default: false
+            description: |-
+              A boolean value that indicates if the request should return spans that describe the scores for each part of the text (currently done at per-sentence level).
+        communityId:
+            type: string
+            description: |-
+              An opaque identifier associating this comment with a particular community within your platform.
+              If set, this field allows us to differentiate comments from different communities, as each community may have different norms.
+        clientToken:
+          type: string
+          description: |-
+            An opaque token that is echoed back in the response.
+            This token can be used to track requests associated with a given project.
+      required:
+        - comment
+        - requestedAttributes
+    CommentAnalyzeResult:
+      type: object
+      properties:
+        attributeScores:
+          $ref: '#/components/schemas/AttributeScores'
+        languages:
+          type: array
+          items:
+            type: string
+          description: |
+            Mirrors the request's languages. If no languages were specified, the API returns the auto-detected language.
+    AttributeScores:
+      title: AttributeScores
+      type: object
+      additionalProperties:
+        $ref: '#/components/schemas/AttributeScore'
+    AttributeScore:
+      type: object
+      properties:
+        spanScores:
+          type: array
+          items:
+            $ref: '#/components/schemas/SpanScore'
+        summaryScore:
+          $ref: '#/components/schemas/Score'
+    Comment:
+      type: object
+      properties:
+        text:
+          type: string
+          description: |-
+            The text to score. This is assumed to be utf8 raw text of the text to be checked.
+            Note: Emoji and other non-ascii characters can be included (HTML will probably result in lower performance).
+          example: "a comment to analyse"
+          maxLength: 20480
+    Score:
+      type: object
+      properties:
+        value:
+          type: number
+          format: double
+          description: |-
+            The attribute score.
+        type:
+          type: string
+          description: |-
+            This mirrors the requested scoreType for this attribute.
+    SpanScore:
+      type: object
+      properties:
+        begin:
+          type: integer
+          format: int32
+          description: |-
+            The beginning of the span (inclusive).
+            Note: This information is only available if the request has spanAnnotations set to true.
+        end:
+          type: integer
+          format: int32
+          description: |-
+            The end of the span (exclusive).
+            Note: This information is only available if the request has spanAnnotations set to true.
+        score:
+          $ref: '#/components/schemas/Score'
+    AttributeType:
+      type: string
+      # see https://developers.perspectiveapi.com/s/about-the-api-attributes-and-languages?language=en_US
+      enum:
+        # production
+        - TOXICITY
+        - SEVERE_TOXICITY
+        - IDENTITY_ATTACK
+        - INSULT
+        - PROFANITY
+        - THREAT
+        # experimental
+        - TOXICITY_EXPERIMENTAL
+        - SEVERE_TOXICITY_EXPERIMENTAL
+        - IDENTITY_ATTACK_EXPERIMENTAL
+        - INSULT_EXPERIMENTAL
+        - PROFANITY_EXPERIMENTAL
+        - THREAT_EXPERIMENTAL
+        - SEXUALLY_EXPLICIT
+        - FLIRTATION
+    Context:
+      type: object
+      properties:
+        entries:
+          type: array
+          items:
+            $ref: '#/components/schemas/ContextEntry'
+      description: |-
+        A list of objects providing the context for comment. The API currently does not make use of this field, but it may influence API responses in the future.
+    ContextEntry:
+      type: object
+      properties:
+        text:
+          type: string
+          description: |-
+            The text to score. This is assumed to be utf8 raw text of the text to be checked.
+            Note: Emoji and other non-ascii characters can be included (HTML will probably result in lower performance).
+        type:
+          $ref: '#/components/schemas/ContextType'
+    ContextType:
+      type: string
+      enum:
+        - PLAIN TEXT
+        - HTML
+      description: |-
+        The text type of comment.text. Either "PLAIN_TEXT" or "HTML". Currently only "PLAIN_TEXT" is supported.

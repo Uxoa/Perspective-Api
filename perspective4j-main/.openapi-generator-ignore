@@ -1,0 +1,5 @@
+README.md
+src/main/java/io/github/primelib/perspective4j/api/PerspectiveConsumerApi.java
+src/main/java/io/github/primelib/perspective4j/api/PerspectiveAsyncConsumerApi.java
+src/main/java/io/github/primelib/perspective4j/model/CommentAnalyzeRequest.java
+src/main/java/io/github/primelib/perspective4j/spec/AnalyzeCommentV1Alpha1OperationSpec.java
