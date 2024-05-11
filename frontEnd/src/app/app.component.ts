@@ -7,7 +7,7 @@ import { DataService } from './data.service';
   styleUrls: ['./app.component.css']
 })
 export class AppComponent implements OnInit {
-  title = 'Your App Title Here';
+  title = 'toxicAdvicer';
   commentText = 'Your comment goes here';
   analysisResult: any;
 
@@ -21,8 +21,32 @@ export class AppComponent implements OnInit {
       .subscribe({
         next: (response) => {
           console.log('Analysis Result:', response);
+
+          // process the response object to make it friendlier
+          const toxicityValue = response.attributeScores.TOXICITY.summaryScore.value;
+
+          // convert toxicity to scale 1-100
+          const toxicityScaled = (toxicityValue * 100).toFixed(0);
+
+          let aggressionLevel = '';
+          if (toxicityValue >= 0.9) {
+            aggressionLevel = 'Muy agresivo';
+          } else if (toxicityValue >= 0.7) {
+            aggressionLevel = 'Agresivo';
+          } else if (toxicityValue >= 0.4) {
+            aggressionLevel = 'Poco agresivo';
+          } else {
+            aggressionLevel = 'No agresivo';
+          }
+
+          const processedResult = {
+            toxicity: toxicityScaled,
+            detectedLanguage: response.detectedLanguages[0],
+            aggressionLevel: aggressionLevel
+          };
+
           // save stringified JSON to display in template
-          this.analysisResult = JSON.stringify(response, null, 2);
+          this.analysisResult = JSON.stringify(processedResult, null, 2);
         },
         error: (error) => {
           console.error('Failed to analyze toxicity:', error);

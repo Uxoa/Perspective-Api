@@ -1,6 +1,6 @@
 <div style="text-align:center">
   <h1>
-    Bienvenido a {{ title }}!
+    Bienvenido a {{ title }}
   </h1>
 
   <div>
@@ -12,6 +12,7 @@
     <button (click)="analyzeComment()">Analizar</button>
   </div>
 
+  <!-- Add 'pre' tag to preserve JSON formatting -->
   <div *ngIf="analysisResult">
     <h2>Resultado del análisis:</h2>
     <pre>{{ analysisResult }}</pre>
